@@ -1,5 +1,13 @@
+import { Exclude } from 'class-transformer';
 import { IsEmail, IsPhoneNumber, MaxLength, MinLength } from 'class-validator';
-import { BaseEntity, Column, Entity, PrimaryGeneratedColumn } from 'typeorm';
+import { Order } from 'src/orders/orders.entity';
+import {
+  BaseEntity,
+  Column,
+  Entity,
+  OneToMany,
+  PrimaryGeneratedColumn,
+} from 'typeorm';
 
 @Entity()
 export class User extends BaseEntity {
@@ -39,4 +47,13 @@ export class User extends BaseEntity {
   })
   @MinLength(10)
   password: string;
+
+  @Column({ type: 'timestamptz' })
+  created_at: Date;
+
+  @Column({ type: 'timestamptz' })
+  updated_at: Date;
+
+  @OneToMany((_type) => Order, (order) => order.user, { eager: false })
+  order: Order[];
 }
