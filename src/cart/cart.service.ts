@@ -5,7 +5,6 @@ import {
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { User } from 'src/auth/auth.entity';
-import { AddProductToCartDto } from 'src/orders/dto/add-product-cart.dto';
 import { OrderDetail } from 'src/orders/order-detail.entity';
 import { Order } from 'src/orders/orders.entity';
 import {
@@ -13,6 +12,8 @@ import {
   OrderRepository,
 } from 'src/orders/orders.repository';
 import { ProductRepository } from 'src/product/product.repository';
+import { SortProduct } from 'src/product/sort.enum';
+import { KeySearchCartDto } from './dto/search-credential.dto';
 
 @Injectable()
 export class CartService {
@@ -29,16 +30,16 @@ export class CartService {
     return this.orderRepository.checkCartExistAndGetOrder(user);
   }
 
+  /// method POST add product to cart
   async addProductToCart(
     user: User,
-    addProductToCartDto: AddProductToCartDto,
+    quantity: number,
+    id: string,
   ): Promise<OrderDetail> {
     const order = await this.checkCartExistAndGetOrder(user);
 
-    const { product_id, quantity } = addProductToCartDto;
-
     try {
-      const product = await this.productRepository.findOne({ id: product_id });
+      const product = await this.productRepository.findOne({ id });
 
       if (!product) {
         throw new NotFoundException();
@@ -54,12 +55,48 @@ export class CartService {
 
       return result;
     } catch (error) {
-      throw new NotFoundException(`Product ID ${product_id} not found`);
+      console.log(error);
+
+      throw new NotFoundException(`Product ID ${id} not found`);
     }
   }
 
+  // method POST change quantity product in cart
+  async changeQuantityProduct(
+    user: User,
+    newQuantity: number,
+    id: string,
+  ): Promise<OrderDetail> {
+    const cart = await this.checkCartExistAndGetOrder(user);
+
+    if (!cart) {
+      throw new InternalServerErrorException();
+    }
+
+    const productInCart: OrderDetail = await this.orderDetailRepository
+      .createQueryBuilder('od')
+      .andWhere('od.order = :order', { order: cart.id })
+      .andWhere('od.id = :id', { id })
+      .getOne();
+
+    if (!productInCart) {
+      throw new NotFoundException();
+    }
+
+    productInCart.quantity = newQuantity;
+
+    const res = await this.orderDetailRepository.save(productInCart);
+
+    return res;
+  }
+
   // get all product in cart
-  async getAllProductInCart(user: User) {
+  async getAllProductInCart(
+    user: User,
+    keySearchCartDto: KeySearchCartDto,
+  ): Promise<OrderDetail[]> {
+    const { order, by } = keySearchCartDto;
+
     try {
       const cart = await this.orderRepository.checkCartExistAndGetOrder(user);
 
@@ -68,12 +105,47 @@ export class CartService {
         .innerJoinAndSelect('od.product', 'product')
         .andWhere(`od.order = '${cart.id}'`);
 
+      /// search
+      if (order === 'name') {
+        if (!by) query.orderBy(`product.name`, 'ASC');
+        else query.orderBy(`product.name`, by);
+      } else if (order === 'quantity') {
+        if (!by) query.orderBy(`od.quantity`, 'ASC');
+        else query.orderBy(`od.quantity`, by);
+      }
+
       const result = await query.getMany();
 
       return result;
     } catch (error) {
-      console.log(error.message);
+      console.log(error);
       throw new InternalServerErrorException();
+    }
+  }
+
+  /// method DELETE delete product from cart
+  async deleteProductFromCart(user: User, id: string) {
+    const cart = await this.orderRepository.checkCartExistAndGetOrder(user);
+
+    if (!cart) {
+      throw new InternalServerErrorException();
+    }
+
+    const productInCart = await this.orderDetailRepository
+      .createQueryBuilder('od')
+      .andWhere('od.order = :order', { order: cart.id })
+      .andWhere('od.id = :id', { id })
+      .getOne();
+
+    if (!productInCart) {
+      throw new NotFoundException();
+    } else {
+      const res = await this.orderDetailRepository.delete(productInCart);
+
+      return {
+        statusCode: 200,
+        message: 'delete product successfully !',
+      };
     }
   }
 }

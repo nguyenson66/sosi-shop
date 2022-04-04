@@ -3,6 +3,7 @@ import { User } from 'src/auth/auth.entity';
 import {
   Column,
   Entity,
+  JoinColumn,
   ManyToOne,
   OneToMany,
   PrimaryGeneratedColumn,
@@ -31,6 +32,7 @@ export class Order {
   updated_at: string;
 
   @ManyToOne((_type) => User, (user) => user.order, { eager: false })
+  @JoinColumn()
   user: User;
 
   @OneToMany((_type) => OrderDetail, (orderDetail) => orderDetail.order, {

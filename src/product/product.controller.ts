@@ -10,8 +10,6 @@ import {
   UseGuards,
 } from '@nestjs/common';
 import { AuthGuard } from '@nestjs/passport';
-import { User } from 'src/auth/auth.entity';
-import { getUser } from 'src/auth/get-user.decotory';
 import { ProductDto } from './dto/product.dto';
 import { ResultStatus } from './dto/result-status.dto';
 import { SearchCredentialDto } from './dto/search-credential.dto';

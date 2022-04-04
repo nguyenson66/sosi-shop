@@ -52,4 +52,14 @@ export class ProductRepository extends Repository<Product> {
       throw new InternalServerErrorException();
     }
   }
+
+  // async getProductById(id: string): Promise<Product> {
+  //   const product = await this.findOne({ id });
+
+  //   if (!product) {
+  //     throw new NotFoundException();
+  //   }
+
+  //   return product;
+  // }
 }

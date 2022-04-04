@@ -1,26 +1,58 @@
-import { Body, Controller, Get, Post, UseGuards } from '@nestjs/common';
+import {
+  Body,
+  Controller,
+  Delete,
+  Get,
+  Param,
+  Patch,
+  Post,
+  Query,
+  UseGuards,
+} from '@nestjs/common';
 import { AuthGuard } from '@nestjs/passport';
 import { User } from 'src/auth/auth.entity';
 import { getUser } from 'src/auth/get-user.decotory';
-import { AddProductToCartDto } from 'src/orders/dto/add-product-cart.dto';
 import { OrderDetail } from 'src/orders/order-detail.entity';
 import { CartService } from './cart.service';
+import { KeySearchCartDto } from './dto/search-credential.dto';
 
 @UseGuards(AuthGuard())
 @Controller('cart')
 export class CartController {
   constructor(private cartService: CartService) {}
 
-  @Post()
-  addProductToCart(
+  ///// GET /////
+  @Get()
+  getAllProductInCart(
     @getUser() user: User,
-    @Body() addProductToCartDto: AddProductToCartDto,
-  ): Promise<OrderDetail> {
-    return this.cartService.addProductToCart(user, addProductToCartDto);
+    @Query() keySearchCartDto: KeySearchCartDto,
+  ): Promise<OrderDetail[]> {
+    return this.cartService.getAllProductInCart(user, keySearchCartDto);
   }
 
-  @Get()
-  getAllProductInCart(@getUser() user: User) {
-    return this.cartService.getAllProductInCart(user);
+  ///// POST /////
+  @Post('/:id')
+  addProductToCart(
+    @getUser() user: User,
+    @Body('quantity') quantity: number,
+    @Param('id') id: string,
+  ): Promise<OrderDetail> {
+    return this.cartService.addProductToCart(user, quantity, id);
+  }
+
+  ///// DELETE /////
+  @Delete('/:id')
+  deleteProductInCart(@getUser() user: User, @Param('id') id: string) {
+    return this.cartService.deleteProductFromCart(user, id);
+  }
+
+  ///// PATCH /////
+  @Patch('/:id')
+  changeQuantityProduct(
+    @getUser() user: User,
+    @Param('id') id: string,
+    @Body('quantity') newQuantity: number,
+  ): Promise<OrderDetail> {
+    return this.cartService.changeQuantityProduct(user, newQuantity, id);
   }
 }

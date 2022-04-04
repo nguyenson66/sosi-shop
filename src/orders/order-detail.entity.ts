@@ -3,6 +3,8 @@ import { Product } from 'src/product/product.entity';
 import {
   Column,
   Entity,
+  JoinColumn,
+  JoinTable,
   ManyToOne,
   OneToOne,
   PrimaryGeneratedColumn,
@@ -19,10 +21,12 @@ export class OrderDetail {
   quantity: number;
 
   @ManyToOne((_type) => Order, (order) => order.orderDetail, { eager: false })
+  @JoinTable()
   order: Order;
 
   @ManyToOne((_type) => Product, (product) => product.orderDetail, {
     eager: false,
   })
+  @JoinColumn()
   product: Product;
 }
