@@ -6,21 +6,8 @@ import { AddProductToCartDto } from './dto/add-product-cart.dto';
 import { OrderDetail } from './order-detail.entity';
 import { OrdersService } from './orders.service';
 
-@Controller('orders')
+@Controller('order')
 @UseGuards(AuthGuard())
 export class OrdersController {
   constructor(private ordersService: OrdersService) {}
-
-  @Post()
-  addProductToCart(
-    @getUser() user: User,
-    @Body() addProductToCartDto: AddProductToCartDto,
-  ): Promise<OrderDetail> {
-    return this.ordersService.addProductToCart(user, addProductToCartDto);
-  }
-
-  // @Get()
-  // getAllProductInCart(@getUser() user: User) {
-  //   return this.ordersService.getAllProductInCart(user);
-  // }
 }

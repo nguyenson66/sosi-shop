@@ -9,7 +9,7 @@ import { Order } from './orders.entity';
 
 @EntityRepository(Order)
 export class OrderRepository extends Repository<Order> {
-  async checkCartExistAndGetId(user: User): Promise<Order> {
+  async checkCartExistAndGetOrder(user: User): Promise<Order> {
     try {
       const query = this.createQueryBuilder('order');
       query.andWhere(`order.status = 'CART' and order.userId = :userId`, {
@@ -39,24 +39,6 @@ export class OrderRepository extends Repository<Order> {
     } catch (error) {
       console.log(error);
 
-      throw new InternalServerErrorException();
-    }
-  }
-
-  async getIdCart(user: User): Promise<string> {
-    try {
-      const user_id = user.id;
-
-      const query = this.createQueryBuilder('order');
-
-      query.andWhere(`order.user_id = :user_id and status = 'CART'`, {
-        user_id,
-      });
-
-      const result = await query.getOne();
-
-      return result.id;
-    } catch (error) {
       throw new InternalServerErrorException();
     }
   }
