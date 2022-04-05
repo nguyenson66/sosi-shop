@@ -8,6 +8,7 @@ import {
   OneToMany,
   PrimaryGeneratedColumn,
 } from 'typeorm';
+import { UserRole } from './user-role.enum';
 
 @Entity()
 export class User extends BaseEntity {
@@ -47,6 +48,13 @@ export class User extends BaseEntity {
   })
   @MinLength(10)
   password: string;
+
+  @Column({
+    type: 'enum',
+    enum: UserRole,
+    default: UserRole.Admin,
+  })
+  role: UserRole;
 
   @Column({ type: 'timestamptz' })
   created_at: Date;

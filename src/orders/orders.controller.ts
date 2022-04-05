@@ -5,12 +5,12 @@ import {
   Get,
   Param,
   Post,
+  SetMetadata,
   UseGuards,
 } from '@nestjs/common';
 import { AuthGuard } from '@nestjs/passport';
 import { User } from 'src/auth/auth.entity';
 import { getUser } from 'src/auth/get-user.decotory';
-import { OrderDetail } from './order-detail.entity';
 import { Order } from './orders.entity';
 import { OrdersService } from './orders.service';
 
@@ -23,6 +23,11 @@ export class OrdersController {
   @Get()
   getListOrder(@getUser() user: User): Promise<Order[]> {
     return this.ordersService.getListOrder(user);
+  }
+
+  @Get('/:id')
+  getOrderById(@getUser() user: User, @Param('id') id: string) {
+    return this.ordersService.getOrderById(user, id);
   }
 
   /// method POST

@@ -15,6 +15,7 @@ import { OrderDetail } from './order-detail.entity';
 import { Order } from './orders.entity';
 import { OrderDetailRepository, OrderRepository } from './orders.repository';
 import * as monment from 'moment';
+import { doesNotThrow } from 'assert';
 
 @Injectable()
 export class OrdersService {
@@ -49,6 +50,43 @@ export class OrdersService {
     }
   }
 
+  async getOrderById(user: User, id: string) {
+    const order = await this.orderRepository.findOne({ id, user: user });
+
+    if (!order) {
+      throw new NotFoundException();
+    }
+
+    const countProductInCart = await this.orderDetailRepository
+      .createQueryBuilder('od')
+      .andWhere('od.orderId = :orderId', { orderId: order.id })
+      .getCount();
+
+    if (countProductInCart === 0) {
+      throw new BadRequestException();
+    }
+
+    // get cost order
+    const query = await this.orderDetailRepository
+      .createQueryBuilder('od')
+      .innerJoinAndSelect('od.product', 'product')
+      .andWhere('od.orderId = :orderId', { orderId: order.id })
+      .select(['od.quantity', 'product.price'])
+      .getMany();
+
+    let cost = 0;
+
+    for (let i = 0; i < query.length; i++)
+      cost += query[i].quantity * query[i].product.price;
+
+    const bill = {
+      ...order,
+      cost,
+    };
+
+    return bill;
+  }
+
   /// method POST
 
   async orderProduct(user: User): Promise<Order> {
@@ -64,6 +102,19 @@ export class OrdersService {
         throw new BadRequestException();
       }
 
+      // get cost order
+      const query = await this.orderDetailRepository
+        .createQueryBuilder('od')
+        .innerJoinAndSelect('od.product', 'product')
+        .andWhere('od.orderId = :orderId', { orderId: cart.id })
+        .select(['od.quantity', 'product.price'])
+        .getMany();
+
+      let cost = 0;
+
+      for (let i = 0; i < query.length; i++)
+        cost += query[i].quantity * query[i].product.price;
+
       /// change status order
       const currentDate = monment().format();
       cart.status = StatusOrder.WAITING;
@@ -71,8 +122,15 @@ export class OrdersService {
 
       const res = await this.orderRepository.save(cart);
 
-      return res;
+      const bill = {
+        ...cart,
+        cost,
+      };
+
+      return bill;
     } catch (error) {
+      console.log(error);
+
       if (error.status === 400) {
         throw new BadRequestException();
       }

@@ -49,4 +49,18 @@ export class UserService {
       throw new UnauthorizedException();
     }
   }
+
+  async validateUser(email: string, password: string) {
+    const user = await this.userRepository.findOne({ email });
+
+    if (user && (await bcrypt.compare(password, user.password))) {
+      // const userPayload: UserPayload = { id: user.id };
+
+      // const accessToken = this.jwtService.sign(userPayload);
+
+      return user;
+    } else {
+      throw new UnauthorizedException();
+    }
+  }
 }

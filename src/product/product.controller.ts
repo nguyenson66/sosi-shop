@@ -10,6 +10,9 @@ import {
   UseGuards,
 } from '@nestjs/common';
 import { AuthGuard } from '@nestjs/passport';
+import { Roles } from 'src/auth/role.decorator';
+import { RolesGuard } from 'src/auth/role.guard';
+import { UserRole } from 'src/auth/user-role.enum';
 import { ProductDto } from './dto/product.dto';
 import { ResultStatus } from './dto/result-status.dto';
 import { SearchCredentialDto } from './dto/search-credential.dto';
@@ -34,14 +37,16 @@ export class ProductController {
 
   /////////// Just Admin //////////////
 
-  @UseGuards(AuthGuard())
   @Post('/add')
+  @UseGuards(AuthGuard(), RolesGuard)
+  @Roles(UserRole.Admin)
   addProduct(@Body() productDto: ProductDto): Promise<Product> {
     return this.productService.addProduct(productDto);
   }
 
-  @UseGuards(AuthGuard())
   @Patch('/:id')
+  @UseGuards(AuthGuard(), RolesGuard)
+  @Roles(UserRole.Admin)
   updateProduct(
     @Body() productDto: ProductDto,
     @Param() id: string,
@@ -49,8 +54,9 @@ export class ProductController {
     return this.productService.updateProduct(id, productDto);
   }
 
-  @UseGuards(AuthGuard())
   @Delete('/:id')
+  @UseGuards(AuthGuard(), RolesGuard)
+  @Roles(UserRole.Admin)
   deleteProduct(@Param() id: string): Promise<ResultStatus> {
     return this.productService.deleteProduct(id);
   }
