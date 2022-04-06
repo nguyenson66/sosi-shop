@@ -10,6 +10,7 @@ import {
   UseGuards,
 } from '@nestjs/common';
 import { AuthGuard } from '@nestjs/passport';
+import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
 import { Roles } from 'src/auth/role.decorator';
 import { RolesGuard } from 'src/auth/role.guard';
 import { UserRole } from 'src/auth/user-role.enum';
@@ -20,6 +21,8 @@ import { Product } from './product.entity';
 import { ProductService } from './product.service';
 
 @Controller('product')
+@ApiBearerAuth()
+@ApiTags('products')
 export class ProductController {
   constructor(private productService: ProductService) {}
 

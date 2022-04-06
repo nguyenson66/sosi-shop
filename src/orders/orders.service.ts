@@ -15,7 +15,7 @@ import { OrderDetail } from './order-detail.entity';
 import { Order } from './orders.entity';
 import { OrderDetailRepository, OrderRepository } from './orders.repository';
 import * as monment from 'moment';
-import { doesNotThrow } from 'assert';
+import { GetOrderDto } from './dto/get-order.dto';
 
 @Injectable()
 export class OrdersService {
@@ -32,14 +32,27 @@ export class OrdersService {
 
   /// method GET
 
-  async getListOrder(user: User): Promise<Order[]> {
+  async getListOrder(user: User, getOrderDto: GetOrderDto): Promise<Order[]> {
+    const statusOrder = getOrderDto.statusOrder;
+
     try {
       const orders = this.orderRepository
         .createQueryBuilder('order')
         .innerJoinAndSelect('order.orderDetail', 'order_detail')
         .innerJoinAndSelect('order_detail.product', 'product')
-        .andWhere('order.userId = :userId', { userId: user.id })
-        .andWhere('order.status != :statusOrder', { statusOrder: 'CART' });
+        .andWhere('order.userId = :userId', { userId: user.id });
+
+      if (statusOrder && statusOrder != StatusOrder.CLOSE) {
+        orders.andWhere('order.status = :statusOrder', { statusOrder });
+      } else {
+        orders.andWhere(
+          'order.status != :statusCart and order.status != :statusClose',
+          {
+            statusCart: StatusOrder.CART,
+            statusClose: StatusOrder.CLOSE,
+          },
+        );
+      }
 
       const res = await orders.getMany();
 
@@ -151,19 +164,19 @@ export class OrdersService {
       throw new BadRequestException('Your order can not delete');
     }
 
-    const resDeleteOrderDetail = await this.orderDetailRepository.delete({
-      order: order,
-    });
+    // const resDeleteOrderDetail = await this.orderDetailRepository.delete({
+    //   order: order,
+    // });
 
-    if (resDeleteOrderDetail.affected > 0) {
-      const res = await this.orderRepository.delete(order);
+    order.status = StatusOrder.CLOSE;
 
-      return {
-        statusCode: 200,
-        message: 'Delete order successfully !!!',
-      };
-    } else {
-      throw new InternalServerErrorException();
-    }
+    const res = await this.orderRepository.save(order);
+
+    console.log(res);
+
+    return {
+      statusCode: 200,
+      message: 'Delete order successfully !!!',
+    };
   }
 }

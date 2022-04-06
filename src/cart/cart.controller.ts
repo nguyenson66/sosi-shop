@@ -10,6 +10,7 @@ import {
   UseGuards,
 } from '@nestjs/common';
 import { AuthGuard } from '@nestjs/passport';
+import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
 import { User } from 'src/auth/auth.entity';
 import { getUser } from 'src/auth/get-user.decotory';
 import { OrderDetail } from 'src/orders/order-detail.entity';
@@ -18,6 +19,8 @@ import { KeySearchCartDto } from './dto/search-credential.dto';
 
 @UseGuards(AuthGuard())
 @Controller('cart')
+@ApiBearerAuth()
+@ApiTags('cart')
 export class CartController {
   constructor(private cartService: CartService) {}
 

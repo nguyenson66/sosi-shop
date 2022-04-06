@@ -6,6 +6,7 @@ import { OrdersModule } from './orders/orders.module';
 import { CartModule } from './cart/cart.module';
 import { APP_GUARD } from '@nestjs/core';
 import { RolesGuard } from './auth/role.guard';
+import { AdminModule } from './admin/admin.module';
 
 @Module({
   imports: [
@@ -23,6 +24,7 @@ import { RolesGuard } from './auth/role.guard';
     ProductModule,
     OrdersModule,
     CartModule,
+    AdminModule,
   ],
 })
 export class AppModule {}
